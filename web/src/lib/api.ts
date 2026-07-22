@@ -95,14 +95,21 @@ export async function fetchOverview(): Promise<DashboardOverview> {
   return data;
 }
 
-export async function addTracker(url: string) {
+export async function addTracker(url: string, categoryId?: string) {
   const res = await apiFetch('/api/trackers/add', {
     method: 'POST',
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url, categoryId: categoryId || undefined }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) throw new Error(data.error || 'Impossible d’ajouter le tracker');
   return data;
+}
+
+export async function fetchCategories() {
+  const res = await apiFetch('/api/categories');
+  if (res.status === 401) throw new Error('Authentification requise');
+  if (!res.ok) throw new Error('Catégories indisponibles');
+  return res.json();
 }
 
 export async function fetchSales(limit = 40) {

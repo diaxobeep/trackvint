@@ -18,9 +18,10 @@ export async function GET(
     const admin = createAdminClient();
 
     const { data: row, error } = await admin
-      .from('seller_trackers')
-      .select('*')
+      .from('trackers')
+      .select('*, categories(*)')
       .eq('user_id', userId)
+      .eq('type', 'seller')
       .eq('vinted_seller_id', id)
       .eq('is_active', true)
       .maybeSingle();
@@ -31,7 +32,10 @@ export async function GET(
     }
 
     const allSales = (await fetchUserSales(userId, 500)).map(mapSale);
-    const sales = allSales.filter((s) => s.sellerLogin === row.vinted_username);
+    const sales = allSales.filter(
+      (s) =>
+        s.trackerId === row.id || s.sellerLogin === row.vinted_username,
+    );
 
     const avgPrice =
       sales.length > 0
@@ -53,6 +57,8 @@ export async function GET(
         login: row.vinted_username,
         photoUrl: row.photo_url,
         domain: row.domain,
+        categoryId: row.category_id,
+        category: row.categories,
       },
       kpis: {
         avgPrice: Number(avgPrice.toFixed(2)),

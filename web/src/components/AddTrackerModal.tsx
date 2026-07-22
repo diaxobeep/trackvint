@@ -1,7 +1,15 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import { addTracker } from '@/lib/api';
+import { FormEvent, useEffect, useState } from 'react';
+import { addTracker, fetchCategories } from '@/lib/api';
+
+type CategoryOpt = {
+  id: string;
+  name: string;
+  slug: string;
+  kind: string;
+  is_system?: boolean;
+};
 
 type Props = {
   open: boolean;
@@ -11,9 +19,23 @@ type Props = {
 
 export function AddTrackerModal({ open, onClose, onAdded }: Props) {
   const [url, setUrl] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState<CategoryOpt[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+
+  useEffect(() => {
+    if (!open) return;
+    fetchCategories()
+      .then((d) => {
+        const list = (d.categories || []) as CategoryOpt[];
+        setCategories(list);
+        // Auto : laisse vide = catégorie système selon type d'URL
+        setCategoryId('');
+      })
+      .catch(() => setCategories([]));
+  }, [open]);
 
   if (!open) return null;
 
@@ -23,11 +45,12 @@ export function AddTrackerModal({ open, onClose, onAdded }: Props) {
     setMsg('');
     setLoading(true);
     try {
-      const data = await addTracker(url.trim());
-      setMsg(data.message || 'Tracker ajouté');
+      const data = await addTracker(url.trim(), categoryId || undefined);
+      const catName = data.category?.name ? ` → ${data.category.name}` : '';
+      setMsg((data.message || 'Tracker ajouté') + catName);
       setUrl('');
       onAdded?.();
-      setTimeout(onClose, 700);
+      setTimeout(onClose, 800);
     } catch (e2) {
       setErr(e2 instanceof Error ? e2.message : 'Erreur');
     } finally {
@@ -51,7 +74,8 @@ export function AddTrackerModal({ open, onClose, onAdded }: Props) {
           Ajouter un tracker
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Colle une URL Vinted (profil /member/… ou recherche /catalog/…).
+          Colle une URL Vinted. Sans choix, le tracker va dans{' '}
+          <strong>Vendeurs</strong> ou <strong>Recherches</strong> (jamais au hasard).
         </p>
         <input
           className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 outline-none focus:border-lime-500"
@@ -60,6 +84,22 @@ export function AddTrackerModal({ open, onClose, onAdded }: Props) {
           onChange={(e) => setUrl(e.target.value)}
           required
         />
+        <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Catégorie
+        </label>
+        <select
+          className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 outline-none focus:border-lime-500"
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+        >
+          <option value="">Auto (Vendeurs / Recherches selon l’URL)</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+              {c.is_system ? ' · système' : ''}
+            </option>
+          ))}
+        </select>
         {err ? <p className="mt-2 text-sm text-red-600">{err}</p> : null}
         {msg ? <p className="mt-2 text-sm text-lime-700">{msg}</p> : null}
         <div className="mt-5 flex justify-end gap-2">

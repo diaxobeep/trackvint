@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireUserId, resolveUserId } from '@/lib/authUser';
+import { resolveUserId } from '@/lib/authUser';
 import { fetchUserTrackers } from '@/lib/supabaseData';
 import { corsJson, corsOptions } from '@/lib/cors';
 
@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
         login: s.vinted_username,
         domain: s.domain,
         photoUrl: s.photo_url,
+        categoryId: s.category_id,
         salesCount: 0,
       })),
     });

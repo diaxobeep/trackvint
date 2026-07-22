@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { requireUserId } from '@/lib/authUser';
-import { fetchUserTrackers } from '@/lib/supabaseData';
+import {
+  fetchUserCategories,
+  fetchUserTrackers,
+} from '@/lib/supabaseData';
 import { corsJson, corsOptions } from '@/lib/cors';
 
 export async function OPTIONS() {
@@ -10,8 +13,17 @@ export async function OPTIONS() {
 export async function GET(req: NextRequest) {
   try {
     const userId = await requireUserId(req);
-    const { sellers, searches } = await fetchUserTrackers(userId);
-    return corsJson({ ok: true, sellers, searches });
+    const [{ sellers, searches, all }, categories] = await Promise.all([
+      fetchUserTrackers(userId),
+      fetchUserCategories(userId),
+    ]);
+    return corsJson({
+      ok: true,
+      categories,
+      trackers: all,
+      sellers,
+      searches,
+    });
   } catch (err) {
     const e = err as Error & { status?: number };
     return corsJson(

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { requireUserId } from '@/lib/authUser';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { upsertTracker } from '@/lib/supabaseData';
 import { corsJson, corsOptions } from '@/lib/cors';
 
 export async function OPTIONS() {
@@ -19,28 +20,28 @@ export async function POST(req: NextRequest) {
       body.login || body.seller?.login || `vendeur-${vintedId.slice(-4)}`;
     const domain = body.domain || 'vinted.fr';
     const photoUrl = body.photoUrl || null;
-    const admin = createAdminClient();
 
-    const { data, error } = await admin
-      .from('seller_trackers')
-      .upsert(
-        {
-          user_id: userId,
-          vinted_seller_id: vintedId,
-          vinted_username: login,
-          domain,
-          photo_url: photoUrl,
-          source_url: `https://www.${domain}/member/${vintedId}`,
-          is_active: true,
-        },
-        { onConflict: 'user_id,vinted_seller_id' },
-      )
-      .select()
-      .single();
-    if (error) throw error;
+    const result = await upsertTracker({
+      userId,
+      type: 'seller',
+      categoryId: body.categoryId || body.folderId || null,
+      domain,
+      sourceUrl: `https://www.${domain}/member/${vintedId}`,
+      photoUrl,
+      vintedSellerId: vintedId,
+      vintedUsername: login,
+    });
 
     return corsJson(
-      { id: data.id, vintedId, login, domain, photoUrl, salesCount: 0 },
+      {
+        id: result.tracker.id,
+        vintedId,
+        login,
+        domain,
+        photoUrl,
+        categoryId: result.tracker.category_id,
+        salesCount: 0,
+      },
       { status: 201 },
     );
   } catch (err) {
@@ -61,9 +62,10 @@ export async function DELETE(req: NextRequest) {
     }
     const admin = createAdminClient();
     const { error } = await admin
-      .from('seller_trackers')
+      .from('trackers')
       .update({ is_active: false })
       .eq('user_id', userId)
+      .eq('type', 'seller')
       .eq('vinted_seller_id', vintedId);
     if (error) throw error;
     return corsJson({ ok: true });

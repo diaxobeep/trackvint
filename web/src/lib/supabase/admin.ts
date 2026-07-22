@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
 /** Client service-role (serveur uniquement). */
 export function createAdminClient() {
@@ -7,7 +8,7 @@ export function createAdminClient() {
   if (!url || !key) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY manquant');
   }
-  return createSupabaseClient(url, key, {
+  return createSupabaseClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
