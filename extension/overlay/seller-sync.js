@@ -144,7 +144,7 @@ async function collectSellerLiveData(memberId, domain = 'vinted.fr') {
       seller.givenItemCount = user.given_item_count ?? null;
     }
   } catch (err) {
-    console.warn('[TrackVint] profile fetch skipped', err?.message || err);
+
   }
 
   // 1 seul appel dressing actif (pas 3 endpoints « sold »)
@@ -154,7 +154,7 @@ async function collectSellerLiveData(memberId, domain = 'vinted.fr') {
       itemsRes?.items || itemsRes?.data?.items || itemsRes?.wardrobe || [];
     activeItems = normalizeVintedItems(items, { domain, status: 'active' });
   } catch (err) {
-    console.warn('[TrackVint] items fetch skipped', err?.message || err);
+
     activeItems = scrapeSellerItemsFromDom(domain).filter(
       (i) => i.status !== 'sold',
     );

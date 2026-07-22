@@ -49,7 +49,7 @@ export function main() {
           const listings = await searchSimilarListingsByImage(message.imageUrl);
           sendResponse({ listings });
         } catch (error) {
-          console.warn('[RT/cs] SEARCH_SIMILAR_ON_SALE failed', error);
+
           sendResponse({
             error:
               error instanceof Error ? error.message : 'errors.unknown',

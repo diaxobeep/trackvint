@@ -14,7 +14,7 @@ function DashboardBody() {
   const [tab, setTab] = useState<'overview' | 'sales' | 'niches' | 'seller'>('overview');
   const p = data?.progress;
   const trackers = data?.trackers || [];
-  const firstSellerId = data?.sellers?.[0]?.vintedId || '275730317';
+  const firstSellerId = data?.sellers?.[0]?.vintedId || '';
 
   return (
     <>
@@ -174,7 +174,15 @@ function DashboardBody() {
 
       {tab === 'sales' ? <SalesFeed /> : null}
       {tab === 'niches' ? <NichePerformance /> : null}
-      {tab === 'seller' ? <SellerDetailView vintedId={String(firstSellerId)} /> : null}
+      {tab === 'seller' ? (
+        firstSellerId ? (
+          <SellerDetailView vintedId={String(firstSellerId)} />
+        ) : (
+          <p className="text-sm text-slate-500">
+            Aucun vendeur tracké — ajoute une URL /member/… pour afficher la fiche.
+          </p>
+        )
+      ) : null}
 
       <AddTrackerModal
         open={openAdd}

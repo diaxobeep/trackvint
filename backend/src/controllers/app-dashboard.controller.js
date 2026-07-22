@@ -186,7 +186,7 @@ export function appDashboard(_req, res) {
       <div class="top-actions">
         <span class="chip" id="plan-chip">FREE</span>
         <button class="btn ghost" type="button" id="btn-sync-ext">Lier extension</button>
-        <button class="btn" type="button" id="btn-login">Connexion démo</button>
+        <button class="btn" type="button" id="btn-login">Connexion</button>
       </div>
     </header>
 
@@ -294,7 +294,7 @@ export function appDashboard(_req, res) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'demo@trackvint.local', password: 'demo' }),
+        body: JSON.stringify({ email: '', password: '' }),
       });
       const data = await res.json();
       if (!res.ok) { statusEl.textContent = data.error || 'Erreur login'; return; }

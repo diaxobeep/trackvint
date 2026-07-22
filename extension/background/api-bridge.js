@@ -31,7 +31,7 @@ export const VINTED_HOST_RE =
  */
 export function registerMessageHandlers() {
   if (!extensionApi?.runtime?.onMessage) {
-    console.warn('[TV] runtime.onMessage unavailable');
+
     return;
   }
 
@@ -88,12 +88,10 @@ async function handleMessage(message) {
 
     case 'START_OAUTH':
     case 'START_EMAIL_LOGIN': {
-      // OAuth mock : login démo via JWT
-      const data = await loginWithPassword({
-        email: 'demo@trackvint.local',
-        password: 'demo',
-      });
-      return { user: data.user, fetchedAt: Date.now() };
+      return {
+        ok: false,
+        error: 'Utilise la connexion email/mot de passe dans le popup.',
+      };
     }
 
     case 'SIGN_OUT':

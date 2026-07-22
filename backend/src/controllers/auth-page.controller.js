@@ -66,12 +66,12 @@ export function authPage(req, res) {
       <div class="error" id="error"></div>
       <form id="form">
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" value="demo@trackvint.local" required />
+        <input id="email" name="email" type="email" value="" placeholder="toi@email.com" required />
         <label for="password">Mot de passe</label>
         <input id="password" name="password" type="password" value="demo" required />
         <button type="submit" id="submit">Se connecter</button>
       </form>
-      <p class="hint">Démo : demo@trackvint.local / demo</p>
+      <p class="hint">Auth via <a href="https://trackvint.vercel.app/auth">le site web</a></p>
     </div>
     <div class="ok" id="ok">
       <h1>Connecté ✓</h1>

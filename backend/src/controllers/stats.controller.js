@@ -34,7 +34,7 @@ function formatSoldDate(iso) {
 function listingPhoto(l) {
   const raw = l.photos?.[0];
   if (raw && !String(raw).includes('trackvint.local')) return raw;
-  return `https://picsum.photos/seed/${l.vintedId || l.id}/112/148`;
+  return null;
 }
 
 export function getStats(req, res) {
@@ -113,7 +113,7 @@ export function getStats(req, res) {
         photoUrl:
           cached?.photoUrl ||
           fav?.photoUrl ||
-          `https://i.pravatar.cc/96?u=${encodeURIComponent(sellerId)}`,
+          null,
         profileUrl: `https://www.${domain}/member/${sellerId}`,
         isFavorite: tracked,
         tracked,

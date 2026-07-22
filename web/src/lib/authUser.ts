@@ -10,49 +10,40 @@ export function isUuid(id: string) {
 }
 
 /**
- * Résout l'userId depuis cookie Supabase, Bearer JWT, ou X-User-Id.
- * Retourne 'demo' si anonyme (store mémoire).
+ * Résout l'userId authentifié (cookie Supabase ou Bearer JWT).
+ * Retourne null si non authentifié — plus de fallback "demo".
  */
-export async function resolveUserId(req: NextRequest): Promise<string> {
-  const header = req.headers.get('x-user-id');
-  if (header && header !== 'undefined') return header;
-
+export async function resolveUserId(req: NextRequest): Promise<string | null> {
   const auth = req.headers.get('authorization') || '';
   const bearer = auth.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
 
-  if (bearer?.startsWith('demo.')) {
-    try {
-      const payload = JSON.parse(
-        Buffer.from(bearer.slice(5), 'base64url').toString('utf8'),
-      );
-      return String(payload.sub || payload.email || 'demo');
-    } catch {
-      return 'demo';
-    }
-  }
-
   if (bearer) {
-    const admin = createAdminClient();
-    if (admin) {
+    try {
+      const admin = createAdminClient();
       const { data } = await admin.auth.getUser(bearer);
-      if (data.user?.id) return data.user.id;
+      if (data.user?.id && isUuid(data.user.id)) return data.user.id;
+    } catch {
+      /* continue */
     }
   }
 
   try {
     const supabase = await createClient();
-    if (supabase) {
-      const { data } = await supabase.auth.getUser();
-      if (data.user?.id) return data.user.id;
-    }
+    const { data } = await supabase.auth.getUser();
+    if (data.user?.id && isUuid(data.user.id)) return data.user.id;
   } catch {
     /* ignore */
   }
 
-  return 'demo';
+  return null;
 }
 
-/** Persistance Supabase seulement pour de vrais UUID auth. */
-export function canUseSupabaseStore(userId: string) {
-  return isUuid(userId) && Boolean(createAdminClient());
+export async function requireUserId(req: NextRequest): Promise<string> {
+  const id = await resolveUserId(req);
+  if (!id) {
+    const err = new Error('Authentification requise') as Error & { status: number };
+    err.status = 401;
+    throw err;
+  }
+  return id;
 }

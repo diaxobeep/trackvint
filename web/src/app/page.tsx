@@ -34,16 +34,16 @@ export default function LandingPage() {
             </div>
             <div className="hero-panel__grid">
               <div>
-                <small>Vitesse moy.</small>
-                <strong>4.5 j</strong>
+                <small>Trackers</small>
+                <strong>Live</strong>
               </div>
               <div>
-                <small>Ventes trackées</small>
-                <strong>1 284</strong>
+                <small>Source</small>
+                <strong>Supabase</strong>
               </div>
               <div>
-                <small>Top niche</small>
-                <strong>Sézane</strong>
+                <small>Sync</small>
+                <strong>Web ↔ Ext</strong>
               </div>
             </div>
           </div>

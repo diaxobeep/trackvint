@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
-import { demoStore } from '@/lib/demoStore';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { canUseSupabaseStore, resolveUserId } from '@/lib/authUser';
+import { requireUserId } from '@/lib/authUser';
+import { fetchUserTrackers } from '@/lib/supabaseData';
 import { corsJson, corsOptions } from '@/lib/cors';
 
 export async function OPTIONS() {
@@ -9,34 +8,15 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  const userId = await resolveUserId(req);
-
-  if (canUseSupabaseStore(userId)) {
-    const admin = createAdminClient()!;
-    const [sellers, searches] = await Promise.all([
-      admin
-        .from('seller_trackers')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true),
-      admin
-        .from('search_trackers')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true),
-    ]);
-    return corsJson({
-      ok: true,
-      sellers: sellers.data || [],
-      searches: searches.data || [],
-    });
+  try {
+    const userId = await requireUserId(req);
+    const { sellers, searches } = await fetchUserTrackers(userId);
+    return corsJson({ ok: true, sellers, searches });
+  } catch (err) {
+    const e = err as Error & { status?: number };
+    return corsJson(
+      { ok: false, error: e.message || 'Erreur' },
+      { status: e.status || 500 },
+    );
   }
-
-  return corsJson({
-    ok: true,
-    sellers: demoStore.listSellers().filter((s) => s.userId === userId || userId === 'demo'),
-    searches: demoStore
-      .listSearches()
-      .filter((s) => s.userId === userId || userId === 'demo'),
-  });
 }

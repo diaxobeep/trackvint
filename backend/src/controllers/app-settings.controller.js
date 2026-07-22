@@ -64,7 +64,7 @@ export function appSettings(_req, res) {
       <div class="row"><span>Email</span><span class="value" id="email">—</span></div>
       <div class="row"><span>Plan</span><span class="value" id="plan">—</span></div>
       <div class="row">
-        <button class="btn" type="button" id="btn-login">Connexion démo</button>
+        <button class="btn" type="button" id="btn-login">Connexion</button>
         <button class="btn ghost" type="button" id="btn-upgrade">Passer Pro</button>
       </div>
       <p class="msg" id="msg"></p>
@@ -90,7 +90,7 @@ export function appSettings(_req, res) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'demo@trackvint.local', password: 'demo' }),
+        body: JSON.stringify({ email: '', password: '' }),
       });
       const data = await res.json();
       if (!res.ok) return setMsg(data.error || 'Erreur', false);
@@ -142,7 +142,7 @@ export function appSettings(_req, res) {
     document.getElementById('btn-upgrade').addEventListener('click', upgrade);
     health();
     if (localStorage.getItem(tokenKey)) {
-      document.getElementById('email').textContent = 'demo@trackvint.local';
+      document.getElementById('email').textContent = '';
       loadSub();
     }
   </script>

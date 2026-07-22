@@ -19,7 +19,13 @@ export default function AuthClient() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => {
+    try {
+      return createClient();
+    } catch {
+      return null;
+    }
+  }, []);
 
   function goApp(token?: string) {
     if (token) {
@@ -38,7 +44,6 @@ export default function AuthClient() {
       if (ext) localStorage.setItem('tv_ext_id', ext);
 
       if (mode === 'register') {
-        // API admin = compte confirmé immédiatement (évite le mur email)
         const data = await registerAccount({ email, password, fullName });
         if (data.token) {
           if (supabase && data.session) {
@@ -55,24 +60,11 @@ export default function AuthClient() {
         return;
       }
 
-      // LOGIN : API same-origin (pas de failed to fetch)
-      try {
-        const data = await loginAccount(email, password);
-        if (supabase && data.token && !String(data.token).startsWith('demo.')) {
-          // Sync cookie session si possible via signIn
-          await supabase.auth.signInWithPassword({ email, password }).catch(() => null);
-        }
-        goApp(data.token);
-        return;
-      } catch (apiErr) {
-        if (!supabase) throw apiErr;
-        const { data, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (authError) throw authError;
-        goApp(data.session?.access_token);
+      const data = await loginAccount(email, password);
+      if (supabase) {
+        await supabase.auth.signInWithPassword({ email, password }).catch(() => null);
       }
+      goApp(data.token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur');
     } finally {
@@ -102,11 +94,7 @@ export default function AuthClient() {
             </button>
           </div>
           <h1>{mode === 'login' ? 'Connexion' : 'Créer un compte'}</h1>
-          <p>
-            {supabase
-              ? 'Auth sécurisée TrackVint'
-              : 'Mode démo — demo@trackvint.local / demo'}
-          </p>
+          <p>Auth sécurisée via Supabase</p>
           {error ? <div className="auth-error">{error}</div> : null}
           {info ? <div className="auth-info">{info}</div> : null}
           {mode === 'register' ? (
@@ -126,7 +114,7 @@ export default function AuthClient() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={mode === 'login' ? 'toi@email.com' : 'toi@email.com'}
+            placeholder="toi@email.com"
             required
             autoComplete="email"
           />
@@ -148,19 +136,6 @@ export default function AuthClient() {
                 ? 'Se connecter'
                 : "S'inscrire"}
           </button>
-          {mode === 'login' && !supabase ? (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              style={{ width: '100%', marginTop: 8 }}
-              onClick={() => {
-                setEmail('demo@trackvint.local');
-                setPassword('demo');
-              }}
-            >
-              Remplir démo
-            </button>
-          ) : null}
           <Link href="/pricing">Voir les offres Pro →</Link>
         </form>
       </main>

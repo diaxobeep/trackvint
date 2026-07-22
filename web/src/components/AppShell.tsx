@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import {
   createContext,
   ReactNode,
@@ -13,7 +13,6 @@ import {
 import {
   DashboardOverview,
   fetchOverview,
-  loginDemo,
   pushJwtToExtension,
 } from '@/lib/api';
 import './app-shell.css';
@@ -22,15 +21,12 @@ const NAV = [
   { href: '/app', label: 'Dashboard', exact: true },
   { href: '/app/setup', label: 'Setup' },
   { href: '/app/tracker', label: 'Tracker' },
-  { href: '/app/sellers', label: 'Top vendeurs', soon: true },
-  { href: '/app/lens', label: 'Lens', soon: true },
 ];
 
 type Ctx = {
   data: DashboardOverview | null;
   err: string;
   refresh: () => Promise<void>;
-  onLogin: () => Promise<void>;
   onLinkExt: () => Promise<void>;
   extStatus: string;
 };
@@ -57,6 +53,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const search = useSearchParams();
+  const router = useRouter();
   const [data, setData] = useState<DashboardOverview | null>(null);
   const [err, setErr] = useState('');
   const [extStatus, setExtStatus] = useState('Extension · —');
@@ -71,9 +68,15 @@ export function AppShell({
   const refresh = useCallback(async () => {
     try {
       setErr('');
+      if (!localStorage.getItem('tv_web_jwt')) {
+        setData(null);
+        setErr('Connecte-toi pour charger tes données Supabase.');
+        return;
+      }
       setData(await fetchOverview());
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Erreur chargement');
+      setData(null);
     }
   }, []);
 
@@ -83,23 +86,15 @@ export function AppShell({
     return () => clearInterval(id);
   }, [refresh]);
 
-  const onLogin = useCallback(async () => {
-    try {
-      const res = await loginDemo();
-      const linked = await pushJwtToExtension(res.token);
-      setExtStatus(linked.ok ? 'Extension · liée ✓' : 'Extension · ouvre depuis le popup');
-      await refresh();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Login impossible');
-    }
-  }, [refresh]);
-
   const onLinkExt = useCallback(async () => {
     const token = localStorage.getItem('tv_web_jwt');
-    if (!token) return onLogin();
+    if (!token) {
+      router.push('/auth');
+      return;
+    }
     const linked = await pushJwtToExtension(token);
     setExtStatus(linked.ok ? 'Extension · liée ✓' : 'Extension · ID manquant (?ext=)');
-  }, [onLogin]);
+  }, [router]);
 
   const folders = [
     ...(data?.folders || []).map((f) => ({
@@ -117,7 +112,7 @@ export function AppShell({
   ].filter((f) => f.label.toLowerCase().includes(folderQ.toLowerCase()));
 
   return (
-    <DashboardCtx.Provider value={{ data, err, refresh, onLogin, onLinkExt, extStatus }}>
+    <DashboardCtx.Provider value={{ data, err, refresh, onLinkExt, extStatus }}>
       <div className={`app-shell ${menuOpen ? 'is-open' : ''}`}>
         <aside className="app-sidebar">
           <div className="app-logo">
@@ -130,14 +125,6 @@ export function AppShell({
               const active = item.exact
                 ? pathname === item.href
                 : pathname.startsWith(item.href);
-              if (item.soon) {
-                return (
-                  <button key={item.href} type="button" className="nav-item" disabled>
-                    {item.label}
-                    <span className="soon">BIENTÔT</span>
-                  </button>
-                );
-              }
               return (
                 <Link
                   key={item.href}
@@ -168,7 +155,7 @@ export function AppShell({
               </div>
             ))}
             {!folders.length ? (
-              <p className="empty">Aucun favori — tracke depuis l’extension.</p>
+              <p className="empty">Aucun favori — ajoute un tracker.</p>
             ) : null}
           </div>
           <div className="sidebar-foot">
@@ -194,9 +181,9 @@ export function AppShell({
               <button type="button" className="btn btn-ghost" onClick={() => void onLinkExt()}>
                 Lier extension
               </button>
-              <button type="button" className="btn btn-primary" onClick={() => void onLogin()}>
-                Connexion démo
-              </button>
+              <Link href="/auth" className="btn btn-primary">
+                Connexion
+              </Link>
               <Link href="/pricing" className="btn btn-ghost">
                 Upgrade
               </Link>

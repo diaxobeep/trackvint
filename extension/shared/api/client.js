@@ -131,7 +131,7 @@ export async function apiRequest(path, options = {}) {
       };
     } catch (error) {
       // Fallback fetch direct si le SW ne répond pas
-      console.warn('[TrackVint] SW proxy failed, direct fetch', error);
+
     }
   }
 

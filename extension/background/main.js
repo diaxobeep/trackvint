@@ -5,7 +5,6 @@ import { registerMessageHandlers, API_BASE_URL } from './api-bridge.js';
 
 const api = globalThis.browser?.runtime?.id != null ? globalThis.browser : globalThis.chrome;
 
-console.info(`[TrackVint] SW ready → ${API_BASE_URL}`);
 registerMessageHandlers();
 
 const VINTED_RE = /vinted\.(fr|be|es|de|it|nl|pl|pt|at|lu)/i;
@@ -28,7 +27,7 @@ api.action.onClicked.addListener(async (tab) => {
   try {
     await api.tabs.sendMessage(tab.id, { type: 'TOGGLE_TV_PANEL' });
   } catch (err) {
-    console.warn('[TrackVint] toggle failed', err);
+
   }
 });
 
@@ -39,7 +38,7 @@ api.commands?.onCommand?.addListener(async (command) => {
   try {
     await api.tabs.sendMessage(tab.id, { type: 'TOGGLE_TV_PANEL' });
   } catch (err) {
-    console.warn('[TrackVint] command toggle failed', err);
+
   }
 });
 
@@ -55,5 +54,5 @@ api.tabs.onUpdated.addListener(async (tabId, info, tab) => {
 });
 
 api.runtime.onInstalled.addListener(() => {
-  console.info('[TrackVint] installed');
+
 });

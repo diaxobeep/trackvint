@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Branche Supabase ici : update profiles.plan = 'pro' / 'starter'
-  console.log('[stripe webhook]', event.type);
+  // Branche Supabase : update profiles.plan selon event.type
+  void event.type;
 
   return NextResponse.json({ received: true });
 }

@@ -256,7 +256,6 @@ function handleTransportProblem(problem, bodyText) {
     /* ignore */
   }
 
-  console.warn('[TrackVint/Vinted]', detail.code, bodyText.slice(0, 120));
 }
 
 /** Helpers métier */

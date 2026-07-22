@@ -113,7 +113,6 @@ export function bootOverlay() {
     return false;
   });
 
-  console.info(`[TrackVint] overlay ready → ${API_BASE_URL}`);
 }
 
 function openAuthPage() {
@@ -159,7 +158,7 @@ async function refreshPanelData(panel, toaster, opts = {}) {
     try {
       await syncSellerLight(memberId, { track: false, domain });
     } catch (err) {
-      console.warn('[TrackVint] light sync failed', err);
+
     }
   }
 
@@ -239,7 +238,7 @@ async function toggleTrackSeller(seller, panel, toaster, forceTrack = false) {
       message: `Vendeur tracké · ${sales} vente(s) connues, ${active} en ligne. Le serveur continue de scrapper.`,
     });
   } catch (err) {
-    console.warn('[TrackVint] track failed', err);
+
     toaster?.show({ message: 'Tracking impossible (API / Vinted).' });
   }
   await refreshPanelData(panel, toaster);

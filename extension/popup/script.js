@@ -132,9 +132,9 @@ async function checkApiStatus() {
   const el = $('#api-status');
   if (!el) return;
   try {
-    const res = await api.get('/health', {}, { auth: false });
+    const res = await api.get('/api/health', {}, { auth: false });
     if (res.__status === 200 && res.data?.ok) {
-      el.textContent = `API OK · ${res.data.version || ''}`.trim();
+      el.textContent = 'API OK';
       el.classList.add('is-ok');
       el.classList.remove('is-down');
     } else {
@@ -143,7 +143,7 @@ async function checkApiStatus() {
       el.classList.remove('is-ok');
     }
   } catch {
-    el.textContent = 'API hors ligne (127.0.0.1:3000)';
+    el.textContent = 'API hors ligne';
     el.classList.add('is-down');
     el.classList.remove('is-ok');
   }
@@ -164,10 +164,10 @@ async function login() {
   els.authError?.classList.add('hidden');
   if (els.btnLogin) els.btnLogin.disabled = true;
   try {
-    const data = await loginWithPassword({
-      email: 'demo@trackvint.local',
-      password: 'demo',
-    });
+    const email = ($('#email')?.value || '').trim();
+    const password = $('#password')?.value || '';
+    if (!email || !password) throw new Error('Email et mot de passe requis');
+    const data = await loginWithPassword({ email, password });
     await enterApp({ user: data.user });
   } catch (err) {
     showAuthError(err?.message || 'Connexion impossible');

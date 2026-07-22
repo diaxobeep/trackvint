@@ -1,45 +1,31 @@
 import { NextRequest } from 'next/server';
-import { demoStore } from '@/lib/demoStore';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { canUseSupabaseStore, resolveUserId } from '@/lib/authUser';
+import { requireUserId, resolveUserId } from '@/lib/authUser';
+import { fetchUserTrackers } from '@/lib/supabaseData';
 import { corsJson, corsOptions } from '@/lib/cors';
 
 export async function OPTIONS() {
   return corsOptions();
 }
 
-/** GET /api/extension/sellers/tracked */
 export async function GET(req: NextRequest) {
-  const userId = await resolveUserId(req);
-  let sellers = demoStore.listSellers(userId);
-
-  if (canUseSupabaseStore(userId)) {
-    const admin = createAdminClient()!;
-    const { data } = await admin
-      .from('seller_trackers')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true);
-    sellers = (data || []).map((r) => ({
-      id: r.id,
-      userId: r.user_id,
-      vintedSellerId: r.vinted_seller_id,
-      vintedUsername: r.vinted_username,
-      domain: r.domain,
-      sourceUrl: r.source_url || '',
-      photoUrl: r.photo_url,
-      isActive: r.is_active,
-    }));
+  try {
+    const userId = await resolveUserId(req);
+    if (!userId) return corsJson({ sellers: [] });
+    const { sellers } = await fetchUserTrackers(userId);
+    return corsJson({
+      sellers: sellers.map((s) => ({
+        id: s.id,
+        vintedId: s.vinted_seller_id,
+        login: s.vinted_username,
+        domain: s.domain,
+        photoUrl: s.photo_url,
+        salesCount: 0,
+      })),
+    });
+  } catch (err) {
+    return corsJson(
+      { sellers: [], error: err instanceof Error ? err.message : 'Erreur' },
+      { status: 500 },
+    );
   }
-
-  return corsJson({
-    sellers: sellers.map((s) => ({
-      id: s.id,
-      vintedId: s.vintedSellerId,
-      login: s.vintedUsername,
-      domain: s.domain,
-      photoUrl: s.photoUrl,
-      salesCount: 0,
-    })),
-  });
 }

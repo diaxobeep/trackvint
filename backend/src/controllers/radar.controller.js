@@ -101,11 +101,11 @@ export function catalogCombined(req, res) {
     },
     soldCount: listings.length,
     avgSoldPrice: locked ? null : Math.round(avg),
-    minPrice: Math.min(...prices),
-    maxPrice: Math.max(...prices),
-    commonState: 'VERY_GOOD',
-    salesPerDay: 0.6,
-    publishedPerDay: 1.1,
+    minPrice: prices.length ? Math.min(...prices) : null,
+    maxPrice: prices.length ? Math.max(...prices) : null,
+    commonState: null,
+    salesPerDay: null,
+    publishedPerDay: null,
     recentSold: listings.slice(0, 10),
     hasMore: false,
     locked: {
@@ -113,14 +113,8 @@ export function catalogCombined(req, res) {
       avgSoldPrice: locked,
       totalRevenue: locked,
     },
-    topBrands: [
-      { brandName: 'Nike', count: 2, revenue: 12300 },
-      { brandName: 'tessa', count: 3, revenue: 10500 },
-    ],
-    topCategories: [
-      { title: 'Robes', count: 3 },
-      { title: 'Baskets', count: 2 },
-    ],
+    topBrands: [],
+    topCategories: [],
   });
 }
 
@@ -151,7 +145,8 @@ export function sellerStats(req, res) {
   const page = recentSold.slice(offset, offset + 10);
   const published = store.getPublishedListings();
   const locked = !store.isPro();
-  const login = store.sellerLoginFor(sellerId);
+  const cached = store.getSellerProfile?.(sellerId);
+  const login = cached?.login || store.sellerLoginFor(sellerId);
   const prices = recentSold.map((l) => l.price);
   const avgCents = prices.length
     ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
@@ -163,17 +158,16 @@ export function sellerStats(req, res) {
   return res.json({
     seller: {
       bannedByVinted: false,
-      city: 'Colomiers',
-      country: 'France',
-      countryCode: 'FR',
-      domain,
-      feedbackCount: 11,
-      feedbackReputation: 0.82,
-      isBusiness: false,
+      city: cached?.city || null,
+      country: cached?.country || null,
+      countryCode: cached?.countryCode || null,
+      domain: cached?.domain || domain,
+      feedbackCount: cached?.feedbackCount ?? null,
+      feedbackReputation: cached?.feedbackReputation ?? null,
+      isBusiness: Boolean(cached?.isBusiness),
       isSuspect: false,
       login,
-      photoUrl:
-        'https://cdn.trackvint.local/radar-vinted-seller-275730317.jpg',
+      photoUrl: cached?.photoUrl || null,
       profileUrl: `https://www.${domain}/member/${sellerId}`,
       suspicionBand: 'none',
       suspicionReasonCodes: [],
@@ -181,15 +175,15 @@ export function sellerStats(req, res) {
     },
     stats: {
       avgSoldPrice: locked ? null : avgCents,
-      publicationsPerDay30d: 1.1,
+      publicationsPerDay30d: null,
       soldCount: recentSold.length,
       totalItems: published.length + recentSold.length,
       totalRevenue: locked ? null : totalRevenue,
     },
     publicationMetrics: {
-      boostsPerDay: locked ? null : 0.2,
-      priceModificationsPerDay: locked ? null : 0.4,
-      publicationsPerDay: 1.1,
+      boostsPerDay: null,
+      priceModificationsPerDay: null,
+      publicationsPerDay: null,
     },
     performanceMetrics: null,
     publishedChart: store.buildPublishedChart(30),

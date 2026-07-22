@@ -114,7 +114,7 @@
       throw new Error(lastErr);
     } catch (err) {
       btn.textContent = 'Erreur';
-      console.warn('[TrackVint] tracker', err);
+
       setTimeout(() => {
         btn.textContent = prev;
         btn.disabled = false;

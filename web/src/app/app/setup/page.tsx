@@ -14,9 +14,9 @@ function SetupBody() {
       </p>
       <ol style={{ color: '#3f5f20', lineHeight: 1.8, paddingLeft: 18, marginBottom: 20 }}>
         <li>Charge l’extension Chrome (mode développeur → dossier <code>extension/</code>).</li>
-        <li>Ouvre le popup → bouton Web (passe <code>?ext=ID</code>).</li>
-        <li>Clique <strong>Lier extension</strong> puis <strong>Connexion démo</strong>.</li>
-        <li>Lance l’API : <code>cd backend && npm start</code></li>
+        <li>Ouvre le popup → connecte-toi avec ton compte Supabase.</li>
+        <li>Sur le web, clique <strong>Lier extension</strong> (URL avec <code>?ext=ID</code>).</li>
+        <li>Optionnel : lance le crawler Express sur Railway / local.</li>
       </ol>
       <div style={{ background: '#fff', border: '1px solid #e3e8e3', borderRadius: 16, padding: 16 }}>
         <h3 style={{ margin: '0 0 8px', fontSize: 14 }}>Variables prod</h3>

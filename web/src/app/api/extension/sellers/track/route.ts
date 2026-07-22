@@ -1,19 +1,15 @@
 import { NextRequest } from 'next/server';
-import { demoStore } from '@/lib/demoStore';
+import { requireUserId } from '@/lib/authUser';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { canUseSupabaseStore, resolveUserId } from '@/lib/authUser';
 import { corsJson, corsOptions } from '@/lib/cors';
 
 export async function OPTIONS() {
   return corsOptions();
 }
 
-/**
- * POST /api/extension/sellers/track
- * Body: { seller: { vintedId, login, domain, photoUrl }, track?: boolean }
- */
 export async function POST(req: NextRequest) {
   try {
+    const userId = await requireUserId(req);
     const body = await req.json().catch(() => ({}));
     const seller = body.seller || body;
     const vintedId = String(seller.vintedId ?? seller.id ?? '');
@@ -21,62 +17,38 @@ export async function POST(req: NextRequest) {
       return corsJson({ error: 'vintedId_required' }, { status: 400 });
     }
 
-    const userId = await resolveUserId(req);
     const login =
-      seller.login || seller.name || seller.vintedUsername || `vendeur-${vintedId.slice(-4)}`;
+      seller.login ||
+      seller.name ||
+      seller.vintedUsername ||
+      `vendeur-${vintedId.slice(-4)}`;
     const domain = seller.domain || 'vinted.fr';
     const photoUrl = seller.photoUrl || seller.photo || null;
-    const sourceUrl = `https://www.${domain}/member/${vintedId}`;
+    const admin = createAdminClient();
 
-    if (canUseSupabaseStore(userId)) {
-      const admin = createAdminClient()!;
-      const { data, error } = await admin
-        .from('seller_trackers')
-        .upsert(
-          {
-            user_id: userId,
-            vinted_seller_id: vintedId,
-            vinted_username: login,
-            domain,
-            photo_url: photoUrl,
-            source_url: sourceUrl,
-            is_active: body.track !== false,
-          },
-          { onConflict: 'user_id,vinted_seller_id' },
-        )
-        .select()
-        .single();
-      if (error) throw error;
-      return corsJson({
-        ok: true,
-        tracked: true,
-        favorite: {
-          id: data.id,
-          vintedId,
-          login,
+    const { data, error } = await admin
+      .from('seller_trackers')
+      .upsert(
+        {
+          user_id: userId,
+          vinted_seller_id: vintedId,
+          vinted_username: login,
           domain,
-          photoUrl,
+          photo_url: photoUrl,
+          source_url: `https://www.${domain}/member/${vintedId}`,
+          is_active: body.track !== false,
         },
-        upserted: 0,
-        salesCount: 0,
-        activeCount: 0,
-      });
-    }
-
-    const result = demoStore.upsertSeller({
-      userId,
-      vintedSellerId: vintedId,
-      vintedUsername: login,
-      domain,
-      sourceUrl,
-      photoUrl: photoUrl || undefined,
-    });
+        { onConflict: 'user_id,vinted_seller_id' },
+      )
+      .select()
+      .single();
+    if (error) throw error;
 
     return corsJson({
       ok: true,
       tracked: true,
       favorite: {
-        id: result.tracker.id,
+        id: data.id,
         vintedId,
         login,
         domain,
@@ -87,9 +59,10 @@ export async function POST(req: NextRequest) {
       activeCount: 0,
     });
   } catch (err) {
+    const e = err as Error & { status?: number };
     return corsJson(
-      { ok: false, error: err instanceof Error ? err.message : 'track_failed' },
-      { status: 500 },
+      { ok: false, error: e.message || 'track_failed' },
+      { status: e.status || 500 },
     );
   }
 }

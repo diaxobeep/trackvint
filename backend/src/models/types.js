@@ -44,10 +44,10 @@ export const Plan = Object.freeze({
 
 export function createUser(overrides = {}) {
   return {
-    id: 'FceRzQtPQNt7xeHfrIKa6pKIisfMq5XY',
-    name: 'Demo TrackVint',
-    email: 'demo@trackvint.local',
-    image: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+    id: 'anonymous',
+    name: 'User',
+    email: '',
+    image: null,
     ...overrides,
   };
 }

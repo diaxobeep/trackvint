@@ -38,116 +38,21 @@ const searchTrackers = new Map();
 /** @type {Map<string, object>} */
 const detectedSales = new Map();
 
-// Seed
+// Dossiers vides par défaut (pas de seed / mock)
 const rootNiches = createFolder({
   id: 'folder_niches',
-  name: 'Niches sneakers',
-  itemCount: 2,
+  name: 'Niches',
+  itemCount: 0,
   sellerCount: 0,
 });
 const rootSellers = createFolder({
   id: 'folder_sellers',
-  name: 'Vendeurs top',
+  name: 'Vendeurs',
   itemCount: 0,
-  sellerCount: 1,
+  sellerCount: 0,
 });
 folders.set(rootNiches.id, rootNiches);
 folders.set(rootSellers.id, rootSellers);
-
-savedItems.set('item_1', {
-  id: 'item_1',
-  vintedId: '9276434990',
-  title: 'Ensemble 2 pièces brodé ton blanc et bleu, taille M',
-  brand: 'tessa',
-  price: 42,
-  currency: 'EUR',
-  domain: 'vinted.fr',
-  photos: [
-    'https://cdn.trackvint.local/radar-vinted-39265911095.jpg',
-  ],
-  state: 'VERY_GOOD',
-  url: 'https://www.vinted.fr/items/9276434990',
-  folderId: rootNiches.id,
-});
-
-savedItems.set('item_2', {
-  id: 'item_2',
-  vintedId: '9442495274',
-  title: 'Paire de mules à talons bicolores (taille 38)',
-  brand: 'Lupila',
-  price: 38,
-  currency: 'EUR',
-  domain: 'vinted.fr',
-  photos: [],
-  state: 'VERY_GOOD',
-  url: 'https://www.vinted.fr/items/9442495274',
-  folderId: rootNiches.id,
-});
-
-favoriteSellers.set('seller_1', {
-  id: 'seller_1',
-  vintedId: '275730317',
-  login: 'anna-411',
-  domain: 'vinted.fr',
-  photoUrl: 'https://cdn.trackvint.local/radar-vinted-seller-275730317.jpg',
-  folderId: rootSellers.id,
-  city: 'Colomiers',
-  country: 'France',
-});
-
-sellerTrackers.set('demo:275730317', {
-  id: 'st_275730317',
-  userId: 'demo',
-  vintedSellerId: '275730317',
-  vintedUsername: 'anna-411',
-  domain: 'vinted.fr',
-  photoUrl: 'https://images1.vinted.net/t/06_00c2d_FLiiNEAXN3xH7SdpLqhZhL7P/f800/1782733744.jpeg',
-  sourceUrl: 'https://www.vinted.fr/member/275730317-anna-411',
-  isActive: true,
-  createdAt: new Date().toISOString(),
-});
-
-searchTrackers.set('demo:sezane', {
-  id: 'sr_sezane',
-  userId: 'demo',
-  searchUrl: 'https://www.vinted.fr/catalog?search_text=s%C3%A9zane&order=newest_first',
-  label: 'Sézane',
-  parsedFilters: { search_text: 'sézane', order: 'newest_first' },
-  domain: 'vinted.fr',
-  isActive: true,
-  createdAt: new Date().toISOString(),
-});
-
-detectedSales.set('demo:1001', {
-  id: 'sale_1001',
-  userId: 'demo',
-  vintedItemId: '1001',
-  title: 'Cardigan Sézane laine mérinos',
-  brand: 'Sézane',
-  priceCents: 4500,
-  currency: 'EUR',
-  photoUrl: '',
-  sellerLogin: 'anna-411',
-  sellerPhotoUrl: 'https://images1.vinted.net/t/06_00c2d_FLiiNEAXN3xH7SdpLqhZhL7P/f800/1782733744.jpeg',
-  itemUrl: 'https://www.vinted.fr/items/1001',
-  soldAt: new Date(Date.now() - 3 * 3600_000).toISOString(),
-  saleSpeedHours: 3,
-});
-
-detectedSales.set('demo:1002', {
-  id: 'sale_1002',
-  userId: 'demo',
-  vintedItemId: '1002',
-  title: 'Robe midi fleurie',
-  brand: 'Sézane',
-  priceCents: 6200,
-  currency: 'EUR',
-  photoUrl: '',
-  sellerLogin: 'anna-411',
-  itemUrl: 'https://www.vinted.fr/items/1002',
-  soldAt: new Date(Date.now() - 36 * 3600_000).toISOString(),
-  saleSpeedHours: 36,
-});
 
 function daysAgo(n) {
   const d = new Date();
@@ -158,153 +63,6 @@ function daysAgo(n) {
 function dateOnly(n) {
   return daysAgo(n).slice(0, 10);
 }
-
-const DEMO_SELLER_ID = '275730317';
-
-const MOCK_SOLD = [
-  createSoldListing({
-    id: '810719966',
-    vintedId: '9276434990',
-    sellerId: DEMO_SELLER_ID,
-    title: 'Ensemble 2 pièces brodé pour l\'été, tons blanc et bleu, taille M',
-    brandName: 'tessa',
-    price: 4200,
-    soldAt: daysAgo(20),
-    favouriteCount: 7,
-    photos: [
-      'https://cdn.trackvint.local/radar-vinted-39265911095.jpg',
-      'https://cdn.trackvint.local/radar-vinted-39265911098.jpg',
-    ],
-    score: 0.982,
-    colors: [{ hex: '#FFFFFF', title: 'Blanc' }],
-  }),
-  createSoldListing({
-    id: '811001122',
-    vintedId: '9281001122',
-    sellerId: DEMO_SELLER_ID,
-    title: 'Robe brodée blanche et bleue taille M',
-    brandName: 'tessa',
-    price: 3500,
-    soldAt: daysAgo(12),
-    favouriteCount: 4,
-    score: 0.91,
-  }),
-  createSoldListing({
-    id: '811223344',
-    vintedId: '9282233445',
-    sellerId: DEMO_SELLER_ID,
-    title: 'Top brodé été blanc M',
-    brandName: 'tessa',
-    price: 2800,
-    soldAt: daysAgo(5),
-    favouriteCount: 2,
-    score: 0.88,
-    state: 'GOOD',
-  }),
-  createSoldListing({
-    id: '812334455',
-    vintedId: '9293344556',
-    sellerId: DEMO_SELLER_ID,
-    title: 'Nike Air Max 90 blanches T42',
-    brandName: 'Nike',
-    price: 4500,
-    soldAt: daysAgo(3),
-    favouriteCount: 11,
-    score: 0.95,
-  }),
-  createSoldListing({
-    id: '813445566',
-    vintedId: '9304455667',
-    sellerId: DEMO_SELLER_ID,
-    title: 'Nike Dunk Low panda T43',
-    brandName: 'Nike',
-    price: 7800,
-    soldAt: daysAgo(1),
-    favouriteCount: 22,
-    score: 0.97,
-    state: 'NEW_WITH_TAGS',
-  }),
-];
-
-const MOCK_PUBLISHED = [
-  createSoldListing({
-    id: '889175016',
-    vintedId: '9450167088',
-    title: 'Chaussures à talons noires, taille 38',
-    brandName: 'Vintage Dressing',
-    price: 3400,
-    soldAt: null,
-    favouriteCount: 0,
-  }),
-  createSoldListing({
-    id: '888132294',
-    vintedId: '9442495274',
-    title: 'Paire de mules à talons bicolores marron et beige (taille 38)',
-    brandName: 'Lupila',
-    price: 3800,
-    soldAt: null,
-    favouriteCount: 4,
-  }),
-  createSoldListing({
-    id: '815627698',
-    vintedId: '9284857095',
-    title: 'Chemisier Léger Jaune Volants, Taille S',
-    brandName: 'tessa',
-    price: 3400,
-    soldAt: null,
-    favouriteCount: 0,
-  }),
-];
-
-inventory.set('inv_1', {
-  id: 'inv_1',
-  title: 'Nike Dunk Low panda T43',
-  brand: 'Nike',
-  buyPrice: 45,
-  sellPrice: 78,
-  status: 'sold',
-  vintedId: '9304455667',
-  notes: 'Acheté en friperie',
-  photos: [],
-  domain: 'vinted.fr',
-  boughtAt: daysAgo(40),
-  soldAt: daysAgo(1),
-  createdAt: daysAgo(40),
-});
-
-inventory.set('inv_2', {
-  id: 'inv_2',
-  title: 'Ensemble brodé blanc/bleu M',
-  brand: 'tessa',
-  buyPrice: 12,
-  sellPrice: 42,
-  status: 'listed',
-  vintedId: '9276434990',
-  notes: null,
-  photos: [
-    'https://cdn.trackvint.local/radar-vinted-39265911095.jpg',
-  ],
-  domain: 'vinted.fr',
-  boughtAt: daysAgo(15),
-  soldAt: null,
-  createdAt: daysAgo(15),
-});
-
-inventory.set('inv_3', {
-  id: 'inv_3',
-  title: 'Mules talons bicolores 38',
-  brand: 'Lupila',
-  buyPrice: 8,
-  sellPrice: null,
-  status: 'stock',
-  vintedId: null,
-  notes: 'À photographier',
-  photos: [],
-  domain: 'vinted.fr',
-  boughtAt: daysAgo(3),
-  soldAt: null,
-  createdAt: daysAgo(3),
-});
 
 function inventoryMargin(item) {
   if (item.sellPrice == null || item.buyPrice == null) return null;
@@ -640,15 +398,9 @@ export const store = {
    */
   getListingsForSeller(sellerId, opts = {}) {
     const sid = String(sellerId);
-    const fromTrack = [...trackedListings.values()].filter(
+    let list = [...trackedListings.values()].filter(
       (l) => String(l.sellerId) === sid,
     );
-    const fromMock = MOCK_SOLD.filter((l) => String(l.sellerId) === sid);
-    const map = new Map();
-    for (const l of [...fromMock, ...fromTrack]) {
-      map.set(String(l.vintedId), l);
-    }
-    let list = [...map.values()];
     if (!opts.includeActive) {
       list = list.filter((l) => l.status !== 'active' && l.soldAt);
     }
@@ -656,26 +408,29 @@ export const store = {
   },
 
   getSoldListings() {
-    // Global feed = mock démo + toutes les ventes trackées
-    const map = new Map();
-    for (const l of MOCK_SOLD) map.set(`m:${l.vintedId}`, l);
-    for (const l of trackedListings.values()) {
-      if (l.status === 'active' && !l.soldAt) continue;
-      map.set(`t:${l.sellerId}:${l.vintedId}`, l);
-    }
-    return [...map.values()];
+    return [...trackedListings.values()].filter(
+      (l) => !(l.status === 'active' && !l.soldAt),
+    );
   },
 
   getPublishedListings() {
-    return MOCK_PUBLISHED;
+    return [...trackedListings.values()].filter(
+      (l) => l.status === 'active' || !l.soldAt,
+    );
   },
 
   buildPublishedChart(days = 30) {
-    const counts = [0, 9, 2, 0, 5, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 3, 0, 0, 0, 0, 1, 0, 1, 0, 2, 3, 0, 2, 0, 3, 0];
-    return Array.from({ length: days }, (_, i) => ({
-      date: dateOnly(days - 1 - i),
-      count: counts[i] ?? Math.floor(Math.random() * 3),
-    }));
+    const listings = this.getPublishedListings();
+    const map = new Map();
+    for (const l of listings) {
+      const day = String(l.listedAt || l.createdAt || '').slice(0, 10);
+      if (!day) continue;
+      map.set(day, (map.get(day) || 0) + 1);
+    }
+    return Array.from({ length: days }, (_, i) => {
+      const date = dateOnly(days - 1 - i);
+      return { date, count: map.get(date) || 0 };
+    });
   },
 
   buildSoldChart(days = 30) {

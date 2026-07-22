@@ -7,13 +7,13 @@ type Niche = {
   brand: string;
   sold: number;
   avgPrice: number;
-  sellThroughRate: number;
+  volumeShare?: number | null;
   sparkline: number[];
 };
 
-function rateColor(rate: number) {
-  if (rate > 30) return 'bg-emerald-500';
-  if (rate >= 15) return 'bg-amber-500';
+function shareColor(share: number) {
+  if (share > 30) return 'bg-emerald-500';
+  if (share >= 15) return 'bg-amber-500';
   return 'bg-slate-300';
 }
 
@@ -30,6 +30,7 @@ export function NichePerformance() {
     <div className="space-y-3">
       {niches.map((n) => {
         const maxSpark = Math.max(1, ...n.sparkline);
+        const share = n.volumeShare ?? 0;
         return (
           <article
             key={n.brand}
@@ -38,19 +39,21 @@ export function NichePerformance() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-bold text-slate-900">{n.brand}</h3>
-                <p className="text-xs text-slate-500">{n.sold} ventes · avg {n.avgPrice} €</p>
+                <p className="text-xs text-slate-500">
+                  {n.sold} ventes · avg {n.avgPrice} €
+                </p>
               </div>
               <div className="text-right">
-                <div className="text-lg font-extrabold text-slate-900">{n.sellThroughRate}%</div>
+                <div className="text-lg font-extrabold text-slate-900">{share}%</div>
                 <div className="text-[10px] uppercase tracking-wide text-slate-400">
-                  Sell-through
+                  Part volume
                 </div>
               </div>
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
               <div
-                className={`h-full rounded-full ${rateColor(n.sellThroughRate)}`}
-                style={{ width: `${n.sellThroughRate}%` }}
+                className={`h-full rounded-full ${shareColor(share)}`}
+                style={{ width: `${share}%` }}
               />
             </div>
             <div className="mt-3 flex h-10 items-end gap-1">
@@ -67,7 +70,9 @@ export function NichePerformance() {
         );
       })}
       {!niches.length ? (
-        <p className="text-sm text-slate-500">Pas encore de niches — les ventes alimentent ce ranking.</p>
+        <p className="text-sm text-slate-500">
+          Pas encore de niches — les ventes détectées alimentent ce ranking.
+        </p>
       ) : null}
     </div>
   );
