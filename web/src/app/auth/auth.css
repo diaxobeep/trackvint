@@ -58,3 +58,31 @@
   font-size: 0.9rem;
   font-weight: 600;
 }
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+}
+.auth-tabs button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 9px;
+  padding: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-tabs button.is-active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.auth-info {
+  color: #86efac;
+  font-size: 0.88rem;
+  margin-bottom: 10px;
+}

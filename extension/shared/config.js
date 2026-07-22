@@ -8,7 +8,7 @@
 /** @typedef {'local' | 'production'} ApiEnv */
 
 /** @type {ApiEnv} */
-export const ENV = 'local';
+export const ENV = 'production';
 
 const ENDPOINTS = {
   local: {
@@ -19,10 +19,9 @@ const ENDPOINTS = {
     webAppUrl: 'http://127.0.0.1:3001',
   },
   production: {
-    // Remplace par ton domaine prod
-    apiBaseUrl: 'https://api.ton-domaine.com',
-    cdnBaseUrl: 'https://cdn.ton-domaine.com',
-    webAppUrl: 'https://ton-domaine.com',
+    apiBaseUrl: 'https://trackvint.vercel.app',
+    cdnBaseUrl: 'https://trackvint.vercel.app',
+    webAppUrl: 'https://trackvint.vercel.app',
   },
 };
 

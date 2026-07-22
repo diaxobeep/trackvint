@@ -14,6 +14,7 @@ import statsRoutes from './routes/stats.routes.js';
 import inventoryRoutes from './routes/inventory.routes.js';
 import scraperRoutes from './routes/scraper.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import trackerRoutes from './routes/tracker.routes.js';
 import { extensionCallback } from './controllers/auth.controller.js';
 import { authPage } from './controllers/auth-page.controller.js';
 import { appDashboard } from './controllers/app-dashboard.controller.js';
@@ -52,6 +53,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/scrape', scraperRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/trackers', trackerRoutes);
 
 app.get('/auth/extension-callback', extensionCallback);
 
@@ -83,6 +85,8 @@ async function boot() {
   if (process.env.CRAWLER_DISABLED !== '1') {
     const { startSellerCrawler } = await import('./jobs/seller-crawler.js');
     startSellerCrawler();
+    const { startCrawlerDispatcher } = await import('./services/crawlerDispatcher.js');
+    startCrawlerDispatcher();
   }
 }
 

@@ -26,6 +26,18 @@ const trackedListings = new Map();
 /** @type {Map<string, object>} */
 const sellerProfiles = new Map();
 
+/** Trackers vendeurs unifiés — clé `${userId}:${vintedSellerId}` */
+/** @type {Map<string, object>} */
+const sellerTrackers = new Map();
+
+/** Trackers recherches — clé `${userId}:${searchUrl}` */
+/** @type {Map<string, object>} */
+const searchTrackers = new Map();
+
+/** Ventes détectées — clé `${userId}:${vintedItemId}` */
+/** @type {Map<string, object>} */
+const detectedSales = new Map();
+
 // Seed
 const rootNiches = createFolder({
   id: 'folder_niches',
@@ -81,6 +93,60 @@ favoriteSellers.set('seller_1', {
   folderId: rootSellers.id,
   city: 'Colomiers',
   country: 'France',
+});
+
+sellerTrackers.set('demo:275730317', {
+  id: 'st_275730317',
+  userId: 'demo',
+  vintedSellerId: '275730317',
+  vintedUsername: 'anna-411',
+  domain: 'vinted.fr',
+  photoUrl: 'https://images1.vinted.net/t/06_00c2d_FLiiNEAXN3xH7SdpLqhZhL7P/f800/1782733744.jpeg',
+  sourceUrl: 'https://www.vinted.fr/member/275730317-anna-411',
+  isActive: true,
+  createdAt: new Date().toISOString(),
+});
+
+searchTrackers.set('demo:sezane', {
+  id: 'sr_sezane',
+  userId: 'demo',
+  searchUrl: 'https://www.vinted.fr/catalog?search_text=s%C3%A9zane&order=newest_first',
+  label: 'Sézane',
+  parsedFilters: { search_text: 'sézane', order: 'newest_first' },
+  domain: 'vinted.fr',
+  isActive: true,
+  createdAt: new Date().toISOString(),
+});
+
+detectedSales.set('demo:1001', {
+  id: 'sale_1001',
+  userId: 'demo',
+  vintedItemId: '1001',
+  title: 'Cardigan Sézane laine mérinos',
+  brand: 'Sézane',
+  priceCents: 4500,
+  currency: 'EUR',
+  photoUrl: '',
+  sellerLogin: 'anna-411',
+  sellerPhotoUrl: 'https://images1.vinted.net/t/06_00c2d_FLiiNEAXN3xH7SdpLqhZhL7P/f800/1782733744.jpeg',
+  itemUrl: 'https://www.vinted.fr/items/1001',
+  soldAt: new Date(Date.now() - 3 * 3600_000).toISOString(),
+  saleSpeedHours: 3,
+});
+
+detectedSales.set('demo:1002', {
+  id: 'sale_1002',
+  userId: 'demo',
+  vintedItemId: '1002',
+  title: 'Robe midi fleurie',
+  brand: 'Sézane',
+  priceCents: 6200,
+  currency: 'EUR',
+  photoUrl: '',
+  sellerLogin: 'anna-411',
+  itemUrl: 'https://www.vinted.fr/items/1002',
+  soldAt: new Date(Date.now() - 36 * 3600_000).toISOString(),
+  saleSpeedHours: 36,
 });
 
 function daysAgo(n) {
@@ -709,6 +775,184 @@ export const store = {
       listedValue: Number(
         listed.reduce((s, i) => s + Number(i.sellPrice || i.buyPrice || 0), 0).toFixed(2),
       ),
+    };
+  },
+
+  // --- Trackers unifiés (vendeurs + recherches) ---
+
+  upsertSellerTracker({ userId, vintedSellerId, vintedUsername, domain, sourceUrl, photoUrl }) {
+    const key = `${userId}:${vintedSellerId}`;
+    const existing = sellerTrackers.get(key);
+    if (existing) {
+      existing.isActive = true;
+      existing.vintedUsername = vintedUsername || existing.vintedUsername;
+      existing.sourceUrl = sourceUrl || existing.sourceUrl;
+      existing.photoUrl = photoUrl || existing.photoUrl;
+      touch();
+      return { created: false, tracker: existing };
+    }
+    const tracker = {
+      id: `st_${vintedSellerId}`,
+      userId,
+      vintedSellerId: String(vintedSellerId),
+      vintedUsername: vintedUsername || String(vintedSellerId),
+      domain: domain || 'vinted.fr',
+      sourceUrl: sourceUrl || '',
+      photoUrl: photoUrl || null,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
+    sellerTrackers.set(key, tracker);
+    // Sync favorite sellers for crawler legacy
+    if (![...favoriteSellers.values()].some((s) => s.vintedId === String(vintedSellerId))) {
+      const id = `seller_${vintedSellerId}`;
+      favoriteSellers.set(id, {
+        id,
+        vintedId: String(vintedSellerId),
+        login: tracker.vintedUsername,
+        domain: tracker.domain,
+        photoUrl: tracker.photoUrl,
+        folderId: 'folder_sellers',
+      });
+    }
+    touch();
+    return { created: true, tracker };
+  },
+
+  upsertSearchTracker({ userId, searchUrl, label, parsedFilters, domain }) {
+    const key = `${userId}:${searchUrl}`;
+    const existing = searchTrackers.get(key);
+    if (existing) {
+      existing.isActive = true;
+      existing.label = label || existing.label;
+      existing.parsedFilters = parsedFilters || existing.parsedFilters;
+      touch();
+      return { created: false, tracker: existing };
+    }
+    const tracker = {
+      id: `sr_${Date.now().toString(36)}`,
+      userId,
+      searchUrl,
+      label: label || 'Recherche',
+      parsedFilters: parsedFilters || {},
+      domain: domain || 'vinted.fr',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
+    searchTrackers.set(key, tracker);
+    touch();
+    return { created: true, tracker };
+  },
+
+  listSellerTrackers(userId) {
+    return [...sellerTrackers.values()].filter((t) => !userId || t.userId === userId);
+  },
+
+  listSearchTrackers(userId) {
+    return [...searchTrackers.values()].filter((t) => !userId || t.userId === userId);
+  },
+
+  listActiveSellerTrackers() {
+    return [...sellerTrackers.values()].filter((t) => t.isActive);
+  },
+
+  listActiveSearchTrackers() {
+    return [...searchTrackers.values()].filter((t) => t.isActive);
+  },
+
+  addDetectedSale(sale) {
+    const key = `${sale.userId || 'demo'}:${sale.vintedItemId}`;
+    if (detectedSales.has(key)) return detectedSales.get(key);
+    const row = {
+      id: `sale_${sale.vintedItemId}`,
+      userId: sale.userId || 'demo',
+      ...sale,
+      soldAt: sale.soldAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+    detectedSales.set(key, row);
+    touch();
+    return row;
+  },
+
+  listDetectedSales(userId, limit = 40) {
+    return [...detectedSales.values()]
+      .filter((s) => !userId || s.userId === userId || s.userId === 'demo')
+      .sort((a, b) => String(b.soldAt).localeCompare(String(a.soldAt)))
+      .slice(0, limit);
+  },
+
+  getNichePerformance(userId) {
+    const sales = this.listDetectedSales(userId, 500);
+    const byBrand = new Map();
+    for (const s of sales) {
+      const brand = s.brand || 'Autre';
+      const cur = byBrand.get(brand) || {
+        brand,
+        sold: 0,
+        volume: 0,
+        sumPrice: 0,
+        sparkline: [0, 0, 0, 0, 0, 0, 0],
+      };
+      cur.sold += 1;
+      cur.volume += 1;
+      cur.sumPrice += Number(s.priceCents || 0) / 100;
+      const day = Math.min(6, Math.floor((Date.now() - new Date(s.soldAt).getTime()) / 86400000));
+      cur.sparkline[6 - day] = (cur.sparkline[6 - day] || 0) + 1;
+      byBrand.set(brand, cur);
+    }
+    return [...byBrand.values()]
+      .map((b) => ({
+        ...b,
+        avgPrice: b.sold ? Number((b.sumPrice / b.sold).toFixed(2)) : 0,
+        sellThroughRate: Math.min(100, Math.round((b.sold / Math.max(8, b.sold + 3)) * 100)),
+      }))
+      .sort((a, b) => b.sold - a.sold)
+      .slice(0, 12);
+  },
+
+  getSellerTrackerDetail(userId, vintedId) {
+    const tracker =
+      this.listSellerTrackers(userId).find((t) => t.vintedSellerId === String(vintedId)) ||
+      [...favoriteSellers.values()].find((s) => s.vintedId === String(vintedId));
+    if (!tracker) return null;
+    const sales = this.listDetectedSales(userId, 200).filter(
+      (s) => s.sellerLogin === (tracker.vintedUsername || tracker.login) || s.vintedSellerId === String(vintedId),
+    );
+    const listings = [...trackedListings.values()].filter(
+      (l) => String(l.sellerId || l.vintedSellerId) === String(vintedId),
+    );
+    const avgPrice =
+      sales.length > 0
+        ? sales.reduce((a, s) => a + Number(s.priceCents || 0) / 100, 0) / sales.length
+        : 0;
+    const brands = {};
+    for (const s of sales) {
+      const b = s.brand || 'Autre';
+      brands[b] = (brands[b] || 0) + 1;
+    }
+    const topBrands = Object.entries(brands)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name, count]) => ({ name, count }));
+
+    return {
+      seller: {
+        vintedId: String(vintedId),
+        login: tracker.vintedUsername || tracker.login,
+        photoUrl: tracker.photoUrl,
+        domain: tracker.domain || 'vinted.fr',
+      },
+      kpis: {
+        avgPrice: Number(avgPrice.toFixed(2)),
+        estimatedRevenue: Number(
+          sales.reduce((a, s) => a + Number(s.priceCents || 0) / 100, 0).toFixed(2),
+        ),
+        soldThisMonth: sales.length,
+        topBrands,
+      },
+      activeItems: listings.filter((l) => l.status !== 'sold').slice(0, 40),
+      soldItems: sales.slice(0, 40),
     };
   },
 };

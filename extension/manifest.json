@@ -5,7 +5,7 @@
   "description": "Radar Vinted local — overlay + API TrackVint (127.0.0.1:3000)",
   "default_locale": "fr",
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://127.0.0.1:3000 http://localhost:3000"
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://127.0.0.1:3000 http://localhost:3000 https://trackvint.vercel.app https://*.vercel.app https://*.supabase.co"
   },
   "icons": {
     "16": "icons/icon-16.png",
@@ -37,11 +37,22 @@
     }
   },
   "externally_connectable": {
-    "matches": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"]
+    "matches": [
+      "http://localhost:3000/*",
+      "http://127.0.0.1:3000/*",
+      "http://localhost:3001/*",
+      "http://127.0.0.1:3001/*",
+      "https://trackvint.vercel.app/*",
+      "https://*.vercel.app/*"
+    ]
   },
   "host_permissions": [
     "http://localhost:3000/*",
     "http://127.0.0.1:3000/*",
+    "http://localhost:3001/*",
+    "http://127.0.0.1:3001/*",
+    "https://trackvint.vercel.app/*",
+    "https://*.vercel.app/*",
     "*://*.vinted.fr/*",
     "*://*.vinted.be/*",
     "*://*.vinted.es/*",
@@ -68,7 +79,7 @@
         "*://*.vinted.at/*",
         "*://*.vinted.lu/*"
       ],
-      "js": ["content/inject-overlay.js"],
+      "js": ["content/inject-overlay.js", "content/inject-tracker-buttons.js"],
       "run_at": "document_idle"
     },
     {

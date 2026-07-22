@@ -1,151 +1,186 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { AppShell, euro, useDashboard } from '@/components/AppShell';
+import { AddTrackerModal } from '@/components/AddTrackerModal';
+import { SalesFeed } from '@/components/SalesFeed';
+import { NichePerformance } from '@/components/NichePerformance';
+import { SellerDetailView } from '@/components/SellerDetailView';
 import './dashboard.css';
 
 function DashboardBody() {
-  const { data } = useDashboard();
+  const { data, refresh } = useDashboard();
+  const [openAdd, setOpenAdd] = useState(false);
+  const [tab, setTab] = useState<'overview' | 'sales' | 'niches' | 'seller'>('overview');
   const p = data?.progress;
   const trackers = data?.trackers || [];
+  const firstSellerId = data?.sellers?.[0]?.vintedId || '275730317';
 
   return (
     <>
-      <h1 className="dash-title">Dashboard</h1>
-      <p className="dash-lead">
-        Suivez vos performances : trackers, marques et produits — synchronisés avec
-        l’extension. Le serveur analyse les ventes en arrière-plan.
-      </p>
-      <div className="banner">
-        <span>Serveur crawler : détection des ventes des vendeurs / articles trackés.</span>
-        <strong>{data?.crawler?.enabled ? 'ACTIF' : '…'}</strong>
-      </div>
-
-      <div className="cards">
-        <section className="card">
-          <h3>Progression</h3>
-          <div className="progress-row">
-            <div className="ring" style={{ ['--p' as string]: String(p?.percent || 0) }}>
-              <div className="ring-inner">{p?.percent || 0}%</div>
-            </div>
-            <div className="bars">
-              <div>
-                <div className="bar-label">
-                  <span>Catalogue</span>
-                  <span>
-                    {p?.catalog?.current || 0}/{p?.catalog?.target || 0}
-                  </span>
-                </div>
-                <div className="bar-track">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        ((p?.catalog?.current || 0) / Math.max(1, p?.catalog?.target || 1)) * 100,
-                      )}%`,
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="bar-label">
-                  <span>Profils</span>
-                  <span>
-                    {p?.profile?.current || 0}/{p?.profile?.target || 0}
-                  </span>
-                </div>
-                <div className="bar-track">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        ((p?.profile?.current || 0) / Math.max(1, p?.profile?.target || 1)) * 100,
-                      )}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="card">
-          <h3>Catégorie la plus vendue</h3>
-          <div className="hero-metric">{data?.topCategory?.name || 'Aucun tracker'}</div>
-          <p className="sub">
-            {data?.topCategory
-              ? `Vitesse moy. ${data.topCategory.avgSaleSpeedDays} j · ${data.topCategory.weekLabel || ''}`
-              : 'Tracke un vendeur depuis l’extension'}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="dash-title">Dashboard</h1>
+          <p className="dash-lead">
+            Trackers vendeurs + niches, ventes live, mêmes données que l’extension.
           </p>
-        </section>
-        <section className="card">
-          <h3>Vitesse de vente moy.</h3>
-          <div className="hero-metric">
-            {data?.avgSaleSpeedDays != null ? `${data.avgSaleSpeedDays}j` : '—'}
-          </div>
-          <p className="sub">Basée sur le volume tracké</p>
-        </section>
-      </div>
-
-      <section className="card section">
-        <div className="section-head">
-          <h2>Performances clés</h2>
-          <p>Top trackers (même data que l’extension).</p>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Nom du tracker</th>
-              <th>Volume</th>
-              <th>Prix moyen</th>
-              <th>Vitesse</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trackers.map((t) => (
-              <tr key={t.id}>
-                <td>
-                  <strong>{t.name}</strong>
-                </td>
-                <td>{t.salesVolume ?? 0}</td>
-                <td>{euro(t.avgPrice)}</td>
-                <td>{t.saleSpeedDays != null ? `${t.saleSpeedDays} j` : '—'}</td>
-                <td>
-                  <span className="status">
-                    <i className={`dot ${t.status === 'ok' ? '' : 'warn'}`} />
-                    {t.status === 'ok' ? 'OK' : 'En cours'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {!trackers.length ? (
-              <tr>
-                <td colSpan={5} style={{ color: '#6b776f' }}>
-                  Aucun tracker — ajoute un favori vendeur dans l’extension.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
-
-      <div className="charts">
-        <section className="card">
-          <h3>Répartition CA / tracker</h3>
-          <div className="chart-box">
-            {trackers.slice(0, 5).map((t) => `${t.name} · ${t.salesVolume || 0}`).join(' · ') ||
-              'Pas encore de CA tracké'}
-          </div>
-        </section>
-        <section className="card">
-          <h3>Ventes par tracker</h3>
-          <div className="chart-box">
-            {data?.soldCount || 0} ventes · avg {euro(data?.avgPrice)}
-          </div>
-        </section>
+        <button
+          type="button"
+          className="rounded-xl bg-[#92ef4a] px-4 py-2.5 text-sm font-bold text-[#0b1702] shadow-sm"
+          onClick={() => setOpenAdd(true)}
+        >
+          + Ajouter un tracker
+        </button>
       </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(
+          [
+            ['overview', 'Vue d’ensemble'],
+            ['sales', 'Sales Feed'],
+            ['niches', 'Niches'],
+            ['seller', 'Fiche vendeur'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`rounded-xl px-3 py-1.5 text-sm font-semibold ${
+              tab === id ? 'bg-[#92ef4a] text-[#0b1702]' : 'bg-white border border-slate-200 text-slate-600'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'overview' ? (
+        <>
+          <div className="banner">
+            <span>Crawler serveur + extension → une seule API /api/trackers/add</span>
+            <strong>{data?.crawler?.enabled ? 'ACTIF' : '…'}</strong>
+          </div>
+
+          <div className="cards">
+            <section className="card">
+              <h3>Progression</h3>
+              <div className="progress-row">
+                <div className="ring" style={{ ['--p' as string]: String(p?.percent || 0) }}>
+                  <div className="ring-inner">{p?.percent || 0}%</div>
+                </div>
+                <div className="bars">
+                  <div>
+                    <div className="bar-label">
+                      <span>Niches</span>
+                      <span>
+                        {p?.catalog?.current || 0}/{p?.catalog?.target || 0}
+                      </span>
+                    </div>
+                    <div className="bar-track">
+                      <div
+                        className="bar-fill"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            ((p?.catalog?.current || 0) /
+                              Math.max(1, p?.catalog?.target || 1)) *
+                              100,
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="bar-label">
+                      <span>Vendeurs</span>
+                      <span>
+                        {p?.profile?.current || 0}/{p?.profile?.target || 0}
+                      </span>
+                    </div>
+                    <div className="bar-track">
+                      <div
+                        className="bar-fill"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            ((p?.profile?.current || 0) /
+                              Math.max(1, p?.profile?.target || 1)) *
+                              100,
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section className="card">
+              <h3>Catégorie la plus vendue</h3>
+              <div className="hero-metric">{data?.topCategory?.name || 'Aucun tracker'}</div>
+              <p className="sub">
+                {data?.topCategory
+                  ? `Vitesse moy. ${data.topCategory.avgSaleSpeedDays} j`
+                  : 'Ajoute un tracker URL'}
+              </p>
+            </section>
+            <section className="card">
+              <h3>Vitesse de vente moy.</h3>
+              <div className="hero-metric">
+                {data?.avgSaleSpeedDays != null ? `${data.avgSaleSpeedDays}j` : '—'}
+              </div>
+              <p className="sub">avg {euro(data?.avgPrice)}</p>
+            </section>
+          </div>
+
+          <section className="card section">
+            <div className="section-head">
+              <h2>Performances clés</h2>
+              <p>Top trackers (vendeurs + recherches).</p>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Volume</th>
+                  <th>Prix moyen</th>
+                  <th>Vitesse</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trackers.map((t) => (
+                  <tr key={t.id}>
+                    <td>
+                      <strong>{t.name}</strong>
+                    </td>
+                    <td>{t.salesVolume ?? 0}</td>
+                    <td>{euro(t.avgPrice)}</td>
+                    <td>{t.saleSpeedDays != null ? `${t.saleSpeedDays} j` : '—'}</td>
+                    <td>
+                      <span className="status">
+                        <i className={`dot ${t.status === 'ok' ? '' : 'warn'}`} />
+                        {t.status === 'ok' ? 'OK' : 'En cours'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </>
+      ) : null}
+
+      {tab === 'sales' ? <SalesFeed /> : null}
+      {tab === 'niches' ? <NichePerformance /> : null}
+      {tab === 'seller' ? <SellerDetailView vintedId={String(firstSellerId)} /> : null}
+
+      <AddTrackerModal
+        open={openAdd}
+        onClose={() => setOpenAdd(false)}
+        onAdded={() => void refresh()}
+      />
     </>
   );
 }

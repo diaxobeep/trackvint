@@ -857,3 +857,19 @@ export function getCrawlerState() {
     domain: VINTED_DOMAIN,
   };
 }
+
+/**
+ * Entrée dispatcher — crawl une liste de SellerTrackers.
+ * @param {Array<{ vintedSellerId?: string, vintedId?: string }>} sellers
+ */
+export async function crawlSellerTrackers(sellers = []) {
+  for (const s of sellers) {
+    const id = s.vintedSellerId || s.vintedId;
+    if (!id) continue;
+    try {
+      await checkSellerUpdates(String(id));
+    } catch (err) {
+      console.warn(`[seller-crawler] ${id}:`, err?.message || err);
+    }
+  }
+}
