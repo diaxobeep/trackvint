@@ -1,0 +1,110 @@
+{
+  "manifest_version": 3,
+  "name": "TrackVint",
+  "version": "0.3.2",
+  "description": "Radar Vinted local — overlay + API TrackVint (127.0.0.1:3000)",
+  "default_locale": "fr",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://127.0.0.1:3000 http://localhost:3000"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "TrackVint",
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/main.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "tabs"],
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Alt+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "Ouvrir ou fermer le panneau TrackVint"
+    }
+  },
+  "externally_connectable": {
+    "matches": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"]
+  },
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
+    "*://*.vinted.fr/*",
+    "*://*.vinted.be/*",
+    "*://*.vinted.es/*",
+    "*://*.vinted.de/*",
+    "*://*.vinted.it/*",
+    "*://*.vinted.nl/*",
+    "*://*.vinted.pl/*",
+    "*://*.vinted.pt/*",
+    "*://*.vinted.at/*",
+    "*://*.vinted.lu/*",
+    "*://*.vinted.net/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.vinted.fr/*",
+        "*://*.vinted.be/*",
+        "*://*.vinted.es/*",
+        "*://*.vinted.de/*",
+        "*://*.vinted.it/*",
+        "*://*.vinted.nl/*",
+        "*://*.vinted.pl/*",
+        "*://*.vinted.pt/*",
+        "*://*.vinted.at/*",
+        "*://*.vinted.lu/*"
+      ],
+      "js": ["content/inject-overlay.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://*.vinted.fr/items/*",
+        "*://*.vinted.be/items/*",
+        "*://*.vinted.es/items/*",
+        "*://*.vinted.de/items/*",
+        "*://*.vinted.it/items/*",
+        "*://*.vinted.nl/items/*",
+        "*://*.vinted.pl/items/*"
+      ],
+      "js": ["content/inject-vinted-item.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "overlay/*",
+        "shared/*",
+        "vinted-item/*",
+        "background/*"
+      ],
+      "matches": [
+        "*://*.vinted.fr/*",
+        "*://*.vinted.be/*",
+        "*://*.vinted.es/*",
+        "*://*.vinted.de/*",
+        "*://*.vinted.it/*",
+        "*://*.vinted.nl/*",
+        "*://*.vinted.pl/*",
+        "*://*.vinted.pt/*",
+        "*://*.vinted.at/*",
+        "*://*.vinted.lu/*"
+      ]
+    }
+  ]
+}

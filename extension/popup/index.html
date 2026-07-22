@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TrackVint</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" class="shell" data-state="loading">
+      <div class="shell-glow" aria-hidden="true"></div>
+
+      <section id="view-loading" class="view view-center" aria-label="Chargement">
+        <span class="spinner" aria-hidden="true"></span>
+        <p class="muted">Chargement…</p>
+      </section>
+
+      <section id="view-auth" class="view view-auth hidden" aria-label="Connexion">
+        <div class="welcome-card">
+          <div class="logo-mark" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="3" fill="currentColor" />
+              <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.5" opacity="0.45" />
+              <circle cx="12" cy="12" r="10.5" stroke="currentColor" stroke-width="1.2" opacity="0.25" />
+            </svg>
+          </div>
+          <p class="brand-kicker">Radar Vinted</p>
+          <h1>TrackVint</h1>
+          <p class="lead">Prix moyens, ventes similaires et inventaire — en local.</p>
+          <button type="button" id="btn-login" class="btn-primary">Se connecter</button>
+          <p id="auth-error" class="error hidden" role="alert"></p>
+          <p class="hint">demo@trackvint.local · demo</p>
+          <p id="api-status" class="api-status" aria-live="polite">API…</p>
+        </div>
+      </section>
+
+      <section id="view-app" class="view hidden" aria-label="Dashboard">
+        <header class="app-header">
+          <div>
+            <p class="eyebrow">TrackVint</p>
+            <h2 id="user-greeting">Bonjour</h2>
+          </div>
+          <div class="header-actions">
+            <span id="plan-badge" class="plan-badge" data-plan="free">FREE</span>
+            <button type="button" id="btn-upgrade" class="btn-accent-sm">Pro</button>
+            <a id="btn-open-app" class="btn-ghost btn-link" href="#" target="_blank" rel="noopener noreferrer">Web</a>
+            <button type="button" id="btn-logout" class="btn-ghost">Out</button>
+          </div>
+        </header>
+
+        <nav class="app-nav" aria-label="Navigation">
+          <button type="button" class="nav-btn active" data-page="home">Stats</button>
+          <button type="button" class="nav-btn" data-page="favorites">Favoris</button>
+          <button type="button" class="nav-btn" data-page="inventory">Stock</button>
+        </nav>
+
+        <p id="notice-banner" class="notice-banner hidden" role="status">
+          <span id="notice-text"></span>
+          <button type="button" id="btn-notice-dismiss" class="notice-dismiss" aria-label="Masquer">×</button>
+        </p>
+
+        <div data-page-panel="home" class="page-panel">
+          <div id="dash-loading" class="dash-state hidden">
+            <div class="skeleton-block"></div>
+            <div class="skeleton-grid">
+              <div class="skeleton-card"></div>
+              <div class="skeleton-card"></div>
+              <div class="skeleton-card"></div>
+              <div class="skeleton-card"></div>
+            </div>
+          </div>
+
+          <div id="dash-error" class="dash-error hidden" role="alert">
+            <strong>Serveur injoignable</strong>
+            <span id="dash-error-msg">Lance l’API : cd backend && npm start</span>
+            <button type="button" id="btn-retry" class="btn-secondary">Réessayer</button>
+          </div>
+
+          <div id="dash-content" class="dash hidden">
+            <form id="form-brand" class="folder-form brand-form">
+              <input id="input-brand" type="text" maxlength="60" placeholder="Marque (Nike…)" autocomplete="off" />
+              <button type="submit" class="btn-secondary">Filtrer</button>
+              <button type="button" id="btn-brand-clear" class="btn-ghost">Effacer</button>
+            </form>
+            <section class="card hero-card">
+              <div class="card-head">
+                <div>
+                  <p class="card-label" id="stats-title">Statistiques</p>
+                  <p class="card-sub" id="stats-category">—</p>
+                </div>
+                <span id="stats-fetched" class="stats-fetched"></span>
+              </div>
+              <div class="hero-avg">
+                <span id="stat-avg" class="hero-value">—</span>
+                <span class="hero-unit">prix moyen</span>
+              </div>
+            </section>
+
+            <section class="stats-grid">
+              <article class="card stat-card">
+                <span class="card-label">Ventes</span>
+                <strong id="stat-sales" class="stat-value">—</strong>
+              </article>
+              <article class="card stat-card">
+                <span class="card-label">Min</span>
+                <strong id="stat-min" class="stat-value">—</strong>
+              </article>
+              <article class="card stat-card">
+                <span class="card-label">Max</span>
+                <strong id="stat-max" class="stat-value">—</strong>
+              </article>
+              <article class="card stat-card">
+                <span class="card-label">État</span>
+                <strong id="stat-state" class="stat-value stat-value-sm">—</strong>
+              </article>
+            </section>
+
+            <section class="card">
+              <div class="card-head">
+                <h3>Ventes récentes</h3>
+              </div>
+              <ul id="sold-list" class="sold-list"></ul>
+              <p id="sold-empty" class="muted center hidden">Aucune vente.</p>
+            </section>
+          </div>
+        </div>
+
+        <div data-page-panel="favorites" class="page-panel hidden">
+          <div class="fav-toolbar">
+            <h3>Dossiers</h3>
+            <button type="button" id="btn-fav-refresh" class="btn-ghost">Actualiser</button>
+          </div>
+          <form id="form-create-folder" class="folder-form">
+            <input id="input-folder-name" type="text" maxlength="80" placeholder="Nouveau dossier…" autocomplete="off" />
+            <button type="submit" class="btn-secondary">Créer</button>
+          </form>
+          <div id="fav-loading" class="dash-state hidden">
+            <span class="spinner" aria-hidden="true"></span>
+          </div>
+          <ul id="fav-list" class="fav-list"></ul>
+          <p id="fav-empty" class="muted center hidden">Aucun dossier.</p>
+        </div>
+
+        <div data-page-panel="inventory" class="page-panel hidden">
+          <div class="fav-toolbar">
+            <h3>Inventaire</h3>
+            <div class="fav-toolbar-actions">
+              <select id="inv-status-filter" class="inv-filter" aria-label="Filtrer le statut">
+                <option value="all">Tous</option>
+                <option value="stock">Stock</option>
+                <option value="listed">En ligne</option>
+                <option value="sold">Vendus</option>
+              </select>
+              <button type="button" id="btn-inv-export" class="btn-ghost">Export</button>
+            </div>
+          </div>
+          <div class="inv-summary" id="inv-summary">
+            <div class="inv-stat"><span>Profit</span><strong id="inv-profit">—</strong></div>
+            <div class="inv-stat"><span>ROI</span><strong id="inv-roi">—</strong></div>
+            <div class="inv-stat"><span>Stock</span><strong id="inv-stock">—</strong></div>
+            <div class="inv-stat"><span>En ligne</span><strong id="inv-listed">—</strong></div>
+          </div>
+          <form id="form-inventory" class="folder-form inv-form">
+            <input id="input-inv-title" type="text" maxlength="200" placeholder="Titre…" required />
+            <input id="input-inv-brand" type="text" maxlength="60" placeholder="Marque" />
+            <input id="input-inv-buy" type="number" min="0" step="0.01" placeholder="€" />
+            <button type="submit" class="btn-secondary">+</button>
+          </form>
+          <ul id="inv-list" class="fav-list"></ul>
+          <p id="inv-empty" class="muted center hidden">Inventaire vide.</p>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

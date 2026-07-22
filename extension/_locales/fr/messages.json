@@ -1,0 +1,8 @@
+{
+  "appName": {
+    "message": "TrackVint"
+  },
+  "appDescription": {
+    "message": "Radar et stats Vinted via ton API locale."
+  }
+}

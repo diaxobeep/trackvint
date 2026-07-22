@@ -1,0 +1,31 @@
+{
+  "name": "backend",
+  "version": "1.2.0",
+  "description": "TrackVint API + stealth Vinted scraper (ResellTrack-like)",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "node --test src/scripts/*.test.js",
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "dev:watch": "node --watch-path=./src src/server.js",
+    "session:refresh": "node -e \"import('./src/services/vintedSession.js').then(m=>m.getVintedSession({force:true}).then(s=>console.log('cookies',s.cookies.length)).catch(e=>{console.error(e);process.exit(1)}))\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.18.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "https-proxy-agent": "^9.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "puppeteer": "^24.22.3",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "undici": "^7.16.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10"
+  }
+}

@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.DS_Store
+.env
+.env.local
+.env*.local
+backend/data/db.json
+backend/data/proxies.json
+backend/.puppeteer*
+*.log
+.vercel
+dist/
+coverage/
+pbbbhbhcaiepibbalaoecnnkhemcmmdb/
+pbbbhbhcaiepibbalaoecnnkhemcmmdb.zip
+deobfuscated/
